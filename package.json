@@ -9,7 +9,7 @@
   "private": true,
   "main": "src/index.ts",
   "scripts": {
-    "start": "node dist/index.js",
+    "start": "node src/index.ts",
     "start_single": "ts-node ./src/index.ts",
     "dev": "nodemon ./src/index.ts --ignore replay/",
     "build": "tsc",
@@ -37,7 +37,7 @@
     "rimraf": "^6.0.1",
     "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.6.2",
+    "typescript": "^5.8.2",
     "typescript-eslint": "^8.18.0",
     "webpack": "^5.96.1"
   },
@@ -46,6 +46,7 @@
     "eventsource": "^2.0.2",
     "express": "^4.21.1",
     "lodash": "^4.17.21",
+    "openssl": "^2.0.0",
     "pkginfo": "^0.4.1",
     "semver": "^7.6.3",
     "socket.io": "^4.8.0",
