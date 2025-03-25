@@ -13,13 +13,13 @@ RUN yarn install
 
 COPY . .
 
-EXPOSE 5100
+# Chỉ expose cổng HTTP bạn dùng, ví dụ 5101
 EXPOSE 5101
-EXPOSE 5200
 
-ENV INSECURE=false
+ENV INSECURE=true
 ENV SERVER_KEY=/app/keys/server.key
 ENV SERVER_CERT=/app/keys/server.crt
+ENV PORT=5101
 
 RUN mkdir -p /app/keys
 
