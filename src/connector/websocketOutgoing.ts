@@ -79,7 +79,7 @@ export class WebsocketOutgoing {
       Log.error("Socket.IO error: " + err);
     });
 
-    serverInstance.listen(5200);
+    serverInstance.listen(5100);
 
     Log.info(`InhouseTracker Server outputting on port 5200!`);
   }

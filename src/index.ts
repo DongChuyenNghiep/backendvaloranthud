@@ -8,7 +8,7 @@ const Log = logging("Status");
 const websocketIncoming = new WebsocketIncoming();
 
 const app = express();
-const port = 5101;
+const port = 5100;
 
 app.get("/status", (req, res) => {
   const status = { status: "UP", matchesRunning: MatchController.getInstance().getMatchCount() };
