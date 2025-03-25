@@ -1,5 +1,10 @@
 import { Agents, Armor, WeaponsAndAbilities } from "../util/ValorantInternalTranslator";
-import { IFormattedKillfeed, IFormattedRoster, IFormattedScoreboard } from "./eventData";
+import {
+  IFormattedAuxScoreboardTeam,
+  IFormattedKillfeed,
+  IFormattedRoster,
+  IFormattedScoreboard,
+} from "./eventData";
 import logging from "../util/Logging";
 import { IconNameSuffixes } from "../util/AgentProperties";
 
@@ -88,10 +93,29 @@ export class Player {
   }
 
   public updateFromScoreboard(data: IFormattedScoreboard) {
+    this._updateSharedScoreboardData(data);
+
+    this.scoreboardAvailable = true;
+  }
+
+  // Only take partial data from aux scoreboard, still get rest from observer
+  public updateFromAuxiliaryScoreboard(data: IFormattedScoreboard | IFormattedAuxScoreboardTeam) {
+    if (this.scoreboardAvailable) return;
+
+    this._updateSharedScoreboardData(data);
+
+    this.auxiliaryAvailable.scoreboard = true;
+  }
+
+  private _updateSharedScoreboardData(data: IFormattedScoreboard | IFormattedAuxScoreboardTeam) {
     if (data.kills > this.kills) {
       this.killsThisRound++;
     }
+    this.agentInternal = data.agentInternal;
+    this.agentProper = Agents[data.agentInternal] || data.agentInternal;
+
     this.runAgentSpecificScoreboardChecks(data);
+
     this.kills = data.kills;
 
     this.deaths = data.deaths;
@@ -113,9 +137,6 @@ export class Player {
     this.armorName = Armor[data.initialArmor];
     this.highestWeapon = WeaponsAndAbilities[data.scoreboardWeaponInternal];
 
-    this.agentInternal = data.agentInternal;
-    this.agentProper = Agents[data.agentInternal] || data.agentInternal;
-
     // Player dies
     if (!data.isAlive && this.isAlive) {
       this.runAgentSpecificDeathChecks();
@@ -127,8 +148,6 @@ export class Player {
     }
     this.isAlive = data.isAlive;
     this.hasSpike = data.hasSpike;
-
-    this.scoreboardAvailable = true;
   }
 
   public extractKillfeedInfo(data: IFormattedKillfeed) {
@@ -195,22 +214,6 @@ export class Player {
     } else {
       this.isObserved = false;
     }
-  }
-
-  // Only take partial data from aux scoreboard, still get rest from observer
-  public updateFromAuxiliaryScoreboard(data: IFormattedScoreboard) {
-    if (this.scoreboardAvailable) return;
-    this.runAgentSpecificScoreboardChecks(data);
-
-    this.hasSpike = data.hasSpike;
-    this.highestWeapon = WeaponsAndAbilities[data.scoreboardWeaponInternal];
-    this.maxUltPoints = data.maxUltPoints;
-    this.currUltPoints = data.currUltPoints;
-    this.armorName = Armor[data.initialArmor];
-    this.assists = data.assists;
-    this.money = data.money;
-
-    this.auxiliaryAvailable.scoreboard = true;
   }
 
   public updateAbilities(data: AvailableAbilities) {
@@ -288,7 +291,9 @@ export class Player {
     this.iconNameSuffix = "";
   }
 
-  private runAgentSpecificScoreboardChecks(data: Partial<IFormattedScoreboard>) {
+  private runAgentSpecificScoreboardChecks(
+    data: Partial<IFormattedScoreboard | IFormattedAuxScoreboardTeam>,
+  ) {
     switch (this.agentProper) {
       case Agents.Smonk:
         this.cloveSpecificChecks(data);
@@ -309,9 +314,9 @@ export class Player {
     }
   }
 
-  private cloveSpecificChecks(data: Partial<IFormattedScoreboard>) {
+  private cloveSpecificChecks(data: Partial<IFormattedScoreboard | IFormattedAuxScoreboardTeam>) {
     // Clove using up all their ult points revives them with a timer on kills, set suffix for representative icon
-    if (data.currUltPoints == 0 && this.currUltPoints == this.maxUltPoints) {
+    if (data.currUltPoints == 0 && this.ultReady) {
       this.setIconNameSuffix(IconNameSuffixes.CLOVE_ULTIMATE);
     }
 
@@ -331,6 +336,16 @@ export class Player {
     if (this.agentProper === Agents.Rift) {
       if (data) {
         this.setIconNameSuffix(IconNameSuffixes.ASTRA_TARGETING);
+      } else {
+        this.resetIconNameSuffix();
+      }
+    }
+  }
+
+  public setCypherCam(data: boolean) {
+    if (this.agentProper === Agents.Gumshoe) {
+      if (data) {
+        this.setIconNameSuffix(IconNameSuffixes.CYPHER_CAM);
       } else {
         this.resetIconNameSuffix();
       }

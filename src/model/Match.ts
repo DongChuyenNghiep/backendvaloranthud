@@ -4,6 +4,7 @@ import {
   IAuthedAuxData,
   IAuthedData,
   IAuthenticationData,
+  IFormattedAuxiliary,
   IFormattedRoundInfo,
   IFormattedScore,
   IFormattedScoreboard,
@@ -105,19 +106,17 @@ export class Match {
         break;
 
       case DataTypes.AUX_SCOREBOARD:
-        this.teams.forEach((team) => team.receiveTeamSpecificData(data));
-        break;
-
       case DataTypes.AUX_ABILITIES:
-        this.teams.forEach((team) => team.receiveTeamSpecificData(data));
-        break;
-
       case DataTypes.AUX_HEALTH:
+      case DataTypes.AUX_ASTRA_TARGETING:
+      case DataTypes.AUX_CYPHER_CAM:
         this.teams.forEach((team) => team.receiveTeamSpecificData(data));
         break;
 
-      case DataTypes.AUX_ASTRA_TARGETING:
-        this.teams.forEach((team) => team.receiveTeamSpecificData(data));
+      case DataTypes.AUX_SCOREBOARD_TEAM:
+        this.teams.forEach((team) =>
+          team.receiveAuxScoreboardTeamData(data as IFormattedAuxiliary),
+        );
         break;
 
       case DataTypes.SPIKE_PLANTED:

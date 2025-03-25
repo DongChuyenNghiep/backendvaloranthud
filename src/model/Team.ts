@@ -5,6 +5,7 @@ import {
   IAuthedData,
   IFormattedAbilities,
   IFormattedAuxiliary,
+  IFormattedAuxScoreboardTeam,
   IFormattedKillfeed,
   IFormattedRoster,
   IFormattedScoreboard,
@@ -85,8 +86,24 @@ export class Team {
         this.processAuxAstraTargeting(data as IFormattedAuxiliary);
         break;
 
+      case DataTypes.AUX_CYPHER_CAM:
+        this.processAuxCypherCam(data as IFormattedAuxiliary);
+        break;
+
       default:
         break;
+    }
+  }
+
+  receiveAuxScoreboardTeamData(data: IFormattedAuxiliary) {
+    // Check if data is for this team since we have to check that by player ID
+    if (this.players.find((player) => player.getPlayerId() === data.playerId)) {
+      const scoreboards = JSON.parse(data.data as string) as IFormattedAuxScoreboardTeam[];
+      for (const playerScoreboard of scoreboards) {
+        this.players
+          .find((player) => player.getPlayerId() === playerScoreboard.playerId)
+          ?.updateFromAuxiliaryScoreboard(playerScoreboard);
+      }
     }
   }
 
@@ -216,6 +233,13 @@ export class Team {
     if (!player) return;
     if (typeof data.data != "boolean") return;
     player.setAstraTargeting(data.data);
+  }
+
+  private processAuxCypherCam(data: IFormattedAuxiliary) {
+    const player = this.players.find((player) => player.getPlayerId() === data.playerId);
+    if (!player) return;
+    if (typeof data.data != "boolean") return;
+    player.setCypherCam(data.data);
   }
 
   private teamKills(): number {
